@@ -505,6 +505,9 @@
 #define LIBXSMM_AARCH64_INSTR_SVE2_PTRUE_AS_COUNTER           0x25207810
 #define LIBXSMM_AARCH64_INSTR_SME_FMAX_2                      0xc1a0a100
 #define LIBXSMM_AARCH64_INSTR_SME_FMAX_4                      0xc1a0a900
+#define LIBXDMM_AARCH64_INSTR_SME_FMLA_VEC4                   0xc1a11800
+
+
 
 /**
  * shift mode */
@@ -1070,5 +1073,13 @@ void libxsmm_aarch64_instruction_set_predication_as_counter( libxsmm_generated_c
                                                              unsigned int             i_vl,
                                                              unsigned int             i_gp_reg_1,
                                                              unsigned int             i_size );
+
+LIBXSMM_API_INTERN
+void libxsmm_aarch64_instruction_sme_compute_vector( libxsmm_generated_code* io_generated_code,
+                                                     unsigned int            i_instr,
+                                                     unsigned int            i_vec_src_reg_1,
+                                                     unsigned int            i_vec_src_reg_2,
+                                                     unsigned int            i_dst_za_reg,
+                                                     unsigned int            i_is_dp );
 
 #endif /* GENERATOR_AARCH64_INSTRUCTIONS_H */
