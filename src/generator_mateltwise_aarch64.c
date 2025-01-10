@@ -124,12 +124,13 @@ void libxsmm_generator_mateltwise_aarch64_update_micro_kernel_config_vectorlengt
       LIBXSMM_HANDLE_ERROR( io_generated_code, LIBXSMM_ERR_UNSUP_DATATYPE );
       return;
     }
-    if ( io_generated_code->arch == LIBXSMM_AARCH64_SVE128 ||
-         io_generated_code->arch == LIBXSMM_AARCH64_NEOV2  ||
-         io_generated_code->arch == LIBXSMM_AARCH64_SVE256 ||
-         io_generated_code->arch == LIBXSMM_AARCH64_NEOV1  ||
-         io_generated_code->arch == LIBXSMM_AARCH64_SVE512 ||
-         io_generated_code->arch == LIBXSMM_AARCH64_A64FX ) {
+    if ( io_generated_code->arch == LIBXSMM_AARCH64_SVE128  ||
+         io_generated_code->arch == LIBXSMM_AARCH64_NEOV2   ||
+         io_generated_code->arch == LIBXSMM_AARCH64_SVE256  ||
+         io_generated_code->arch == LIBXSMM_AARCH64_NEOV1   ||
+         io_generated_code->arch == LIBXSMM_AARCH64_SVE512  ||
+         io_generated_code->arch == LIBXSMM_AARCH64_A64FX   ||
+         io_generated_code->arch == LIBXSMM_AARCH64_APPL_M4 ) {
       io_micro_kernel_config->vmove_instruction_in = LIBXSMM_AARCH64_INSTR_SVE_LDR_Z_I_OFF;
       io_micro_kernel_config->vmove_instruction_out = LIBXSMM_AARCH64_INSTR_SVE_STR_Z_I_OFF;
     }
@@ -386,7 +387,7 @@ void libxsmm_generator_mateltwise_aarch64_kernel( libxsmm_generated_code*       
            (i_mateltwise_desc->param == LIBXSMM_MELTW_TYPE_UNARY_TRANSFORM_PADNM_MOD2)          ) {
         libxsmm_generator_transform_aarch64_microkernel( io_generated_code, &l_loop_label_tracker, &l_gp_reg_mapping, &l_kernel_config, i_mateltwise_desc );
       } else if ((i_mateltwise_desc->param == LIBXSMM_MELTW_TYPE_UNARY_GATHER) || (i_mateltwise_desc->param == LIBXSMM_MELTW_TYPE_UNARY_SCATTER)) {
-        libxsmm_generator_gather_scatter_aarch64_microkernel ( io_generated_code, &l_loop_label_tracker, &l_gp_reg_mapping, &l_kernel_config, i_mateltwise_desc );
+        libxsmm_generator_gather_scatter_aarch64_microkernel ( io_generated_code, &l_loop_label_tracker, &l_gp_reg_mapping, &l_kernel_config, i_mateltwise_desc ); /* TODO */
       } else {
         libxsmm_generator_unary_binary_aarch64_microkernel( io_generated_code, &l_loop_label_tracker, &l_gp_reg_mapping, &l_kernel_config, i_mateltwise_desc );
       }

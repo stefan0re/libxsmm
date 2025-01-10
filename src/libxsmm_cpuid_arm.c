@@ -151,7 +151,6 @@ LIBXSMM_API int libxsmm_cpuid_arm(libxsmm_cpuid_info* info)
     if (sysctlbyname("hw.optional.arm.FEAT_SME", &sme_supported, &size, NULL, 0) == 0) {
       if (sme_supported == 1) {
           result = LIBXSMM_AARCH64_APPL_M4;
-          printf("using M4 !\n");
       } else {
           result = LIBXSMM_AARCH64_APPL_M1;
       }

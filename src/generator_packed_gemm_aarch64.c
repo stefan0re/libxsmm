@@ -95,7 +95,7 @@ void libxsmm_generator_packed_gemm_aarch64( libxsmm_generated_code*         io_g
   }
 
   /* set P0 in case of SVE */
-  if ( (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch <= LIBXSMM_AARCH64_ALLFEAT) ) {
+  if ( (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch < LIBXSMM_AARCH64_APPL_M4) ) {
     libxsmm_generator_set_p_register_aarch64_sve( io_generated_code,
                                                   LIBXSMM_AARCH64_SVE_REG_P0,
                                                   -1,
@@ -253,7 +253,7 @@ LIBXSMM_API_INTERN void libxsmm_generator_packed_gemm_aarch64_kloop( libxsmm_gen
 
   /* select simd packing width and accumulator blocking */
   if ( LIBXSMM_DATATYPE_F64 == LIBXSMM_GEMM_GETENUM_AB_COMMON_PREC( i_xgemm_desc->datatype ) ) {
-    if ( io_generated_code->arch >= LIBXSMM_AARCH64_SVE128 ) {
+    if ( io_generated_code->arch >= LIBXSMM_AARCH64_SVE128 && io_generated_code->arch < LIBXSMM_AARCH64_APPL_M4 ) {
       if ( io_generated_code->arch < LIBXSMM_AARCH64_SVE256 ) {
         l_simd_packed_width = 2;
       } else if ( io_generated_code->arch < LIBXSMM_AARCH64_SVE512 ) {
@@ -265,7 +265,7 @@ LIBXSMM_API_INTERN void libxsmm_generator_packed_gemm_aarch64_kloop( libxsmm_gen
       l_simd_packed_width = 2;
     }
   } else {
-    if ( io_generated_code->arch >= LIBXSMM_AARCH64_SVE128 ) {
+    if ( (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch < LIBXSMM_AARCH64_APPL_M4) ) {
       if ( io_generated_code->arch < LIBXSMM_AARCH64_SVE256 ) {
         l_simd_packed_width = 4;
       } else if ( io_generated_code->arch < LIBXSMM_AARCH64_SVE512 ) {
@@ -283,7 +283,7 @@ LIBXSMM_API_INTERN void libxsmm_generator_packed_gemm_aarch64_kloop( libxsmm_gen
   l_simd_packed_iters = i_packed_width/l_simd_packed_width;
 
   /* set P1 in case of SVE for remainder handling */
-  if ( (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch <= LIBXSMM_AARCH64_ALLFEAT) ) {
+  if ( (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch < LIBXSMM_AARCH64_APPL_M4) ) {
     libxsmm_generator_set_p_register_aarch64_sve( io_generated_code,
                                                   LIBXSMM_GENERATOR_PACKED_GEMM_AARCH64_MASK_REG,
                                                   l_simd_packed_remainder * i_micro_kernel_config->datatype_size_in,
@@ -412,7 +412,7 @@ LIBXSMM_API_INTERN void libxsmm_generator_packed_gemm_aarch64_load_C( libxsmm_ge
                                                                       const unsigned int                 i_packed_width ) {
   unsigned int l_n = 0;
   unsigned int l_m = 0;
-  unsigned int l_is_sve = ( (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch <= LIBXSMM_AARCH64_ALLFEAT) ) ? 1 : 0;
+  unsigned int l_is_sve = ( (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch < LIBXSMM_AARCH64_APPL_M4 ) ) ? 1 : 0;
 
   /* load C accumulator */
   for ( l_n = 0; l_n < i_n_blocking; l_n++ ) {
@@ -497,7 +497,7 @@ LIBXSMM_API_INTERN void libxsmm_generator_packed_gemm_aarch64_kloop_simd_packed(
   unsigned int l_n = 0;
   unsigned int l_m = 0;
   unsigned int l_use_masking = 0;
-  unsigned int l_is_sve = ( (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch <= LIBXSMM_AARCH64_ALLFEAT) ) ? 1 : 0;
+  unsigned int l_is_sve = ( (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch < LIBXSMM_AARCH64_APPL_M4) ) ? 1 : 0;
 
   /* check if we need to compute a mask */
   if ( i_simd_packed_width > i_simd_packed_valid ) {

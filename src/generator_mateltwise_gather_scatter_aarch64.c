@@ -29,6 +29,7 @@ void libxsmm_generator_gather_scatter_cols_aarch64_microkernel( libxsmm_generate
   unsigned int l_idx_tsize = ((i_mateltwise_desc->flags & LIBXSMM_MELTW_FLAG_UNARY_IDX_SIZE_8BYTES) > 0 ) ? 8 : 4;
   unsigned int l_mask_reg = 1;
   unsigned char l_is_sve = (io_generated_code->arch >= LIBXSMM_AARCH64_SVE128) && (io_generated_code->arch <= LIBXSMM_AARCH64_ALLFEAT);
+  unsigned char l_is_sme = (io_generated_code->arch > LIBXSMM_AARCH64_A64FX) && (io_generated_code->arch <= LIBXSMM_AARCH64_ALLFEAT);
   unsigned int l_vector_length = libxsmm_cpuid_vlen(io_generated_code->arch);
   unsigned int l_vlen = l_vector_length/i_micro_kernel_config->datatype_size_in;
   unsigned int l_is_gather = 1;
@@ -92,6 +93,11 @@ void libxsmm_generator_gather_scatter_cols_aarch64_microkernel( libxsmm_generate
   l_m_unroll_factor   = l_m_trips;
   l_m_trips_loop      = 1;
   l_peeled_m_trips    = 0;
+
+  if( l_is_sme ){
+    libxsmm_aarch64_instruction_sm( io_generated_code,
+                                    LIBXSMM_AARCH64_INSTR_SME_SMSTART);
+  }
 
   if (l_is_sve > 0) {
     libxsmm_generator_set_p_register_aarch64_sve( io_generated_code, 0, -1, i_gp_reg_mapping->gp_reg_scratch_0 );
@@ -186,6 +192,11 @@ void libxsmm_generator_gather_scatter_cols_aarch64_microkernel( libxsmm_generate
   }
 
   libxsmm_generator_loop_footer_aarch64(io_generated_code, io_loop_label_tracker, i_gp_reg_mapping->gp_reg_n_loop, 1);
+
+  if( l_is_sme ){
+    libxsmm_aarch64_instruction_sm( io_generated_code,
+                                    LIBXSMM_AARCH64_INSTR_SME_SMSTOP);
+  }
 }
 
 LIBXSMM_API_INTERN
@@ -761,8 +772,10 @@ void libxsmm_generator_gather_scatter_aarch64_microkernel( libxsmm_generated_cod
   if ((i_mateltwise_desc->flags & LIBXSMM_MELTW_FLAG_UNARY_GS_COLS ) > 0 ) {
     libxsmm_generator_gather_scatter_cols_aarch64_microkernel( io_generated_code, io_loop_label_tracker, i_gp_reg_mapping, i_micro_kernel_config, i_mateltwise_desc );
   } else if ((i_mateltwise_desc->flags & LIBXSMM_MELTW_FLAG_UNARY_GS_ROWS ) > 0 ) {
+    if( io_generated_code->arch == LIBXSMM_AARCH64_APPL_M4) io_generated_code->arch = LIBXSMM_AARCH64_V81; /* TODO: fix this hack!!*/
     libxsmm_generator_gather_scatter_rows_aarch64_microkernel( io_generated_code, io_loop_label_tracker, i_gp_reg_mapping, i_micro_kernel_config, i_mateltwise_desc );
   } else if ((i_mateltwise_desc->flags & LIBXSMM_MELTW_FLAG_UNARY_GS_OFFS ) > 0 ) {
+    if( io_generated_code->arch == LIBXSMM_AARCH64_APPL_M4) io_generated_code->arch = LIBXSMM_AARCH64_V81;
     libxsmm_generator_gather_scatter_offs_aarch64_microkernel( io_generated_code, io_loop_label_tracker, i_gp_reg_mapping, i_micro_kernel_config, i_mateltwise_desc );
   } else {
     /* SHOULD NOT HAPPEN */
