@@ -3343,13 +3343,21 @@ int main(int argc, char* argv []) {
   if ( l_file_input != 0 ) {
     l_file_handle = fopen( l_file_name, "r" );
   } else {
-    if ( l_trans_b == 0 ) {
+    if ( l_trans_a == 0 && l_trans_b == 0 ) {
       printf("------------------------------------------------\n");
       printf("RUNNING (%ix%i) X (%ix%i) = (%ix%i)\na:%s, b:%s, comp:%s, c:%s, BR=%i\n", l_m, l_k, l_k, l_n, l_m, l_n, l_a_dt, l_b_dt, l_comp_dt, l_c_dt, l_br);
       printf("------------------------------------------------\n");
-    } else {
+    } else if ( l_trans_a == 1 && l_trans_b == 0 ) {
+      printf("------------------------------------------------\n");
+      printf("RUNNING (%ix%i)^T X (%ix%i) = (%ix%i)\na:%s, b:%s, comp:%s, c:%s, BR=%i\n", l_m, l_k, l_k, l_n, l_m, l_n, l_a_dt, l_b_dt, l_comp_dt, l_c_dt, l_br);
+      printf("------------------------------------------------\n");
+    } else if ( l_trans_a == 0 && l_trans_b == 1 ) {
       printf("------------------------------------------------\n");
       printf("RUNNING (%ix%i) X (%ix%i)^T = (%ix%i)\na:%s, b:%s, comp:%s, c:%s, BR=%i\n", l_m, l_k, l_k, l_n, l_m, l_n, l_a_dt, l_b_dt, l_comp_dt, l_c_dt, l_br);
+      printf("------------------------------------------------\n");
+    } else {
+      printf("------------------------------------------------\n");
+      printf("RUNNING (%ix%i)^T X (%ix%i)^T = (%ix%i)\na:%s, b:%s, comp:%s, c:%s, BR=%i\n", l_m, l_k, l_k, l_n, l_m, l_n, l_a_dt, l_b_dt, l_comp_dt, l_c_dt, l_br);
       printf("------------------------------------------------\n");
     }
   }
