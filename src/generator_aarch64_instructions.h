@@ -234,6 +234,8 @@
 #define LIBXSMM_AARCH64_INSTR_GP_MOVN            0x12800000
 #define LIBXSMM_AARCH64_INSTR_GP_CBNZ            0x35000000
 #define LIBXSMM_AARCH64_INSTR_GP_CBZ             0x34000000
+#define LIBXSMM_AARCH64_INSTR_GP_MADD            0x1b000000
+#define LIBXSMM_AARCH64_INSTR_GP_MSUB            0x1b008000
 /* define GP meta instructions, which are instructions with an immediate offset, */
 /* which are split into multiple instructions, if the immediate would be out of bounds */
 #define LIBXSMM_AARCH64_INSTR_GP_META_ADD        0x00001000
@@ -504,6 +506,14 @@
 #define LIBXSMM_AARCH64_INSTR_SME_ST1W_4                      0xa160c000
 #define LIBXSMM_AARCH64_INSTR_SVE2_LD1W_2                     0xa0404000 /* 0b10100000010000000100000000000000 */
 #define LIBXSMM_AARCH64_INSTR_SVE2_LD1W_4                     0xa040c000 /* 0b10100000010000001100000000000000 */
+#define LIBXSMM_AARCH64_INSTR_SVE2_ST1W_2                     0xa0604000 /* store 2 consecutive vectors */
+#define LIBXSMM_AARCH64_INSTR_SVE2_ST1W_4                     0xa060c000 /* store 4 consecutive vectors */
+#define LIBXSMM_AARCH64_INSTR_SME2_ZIP_4_S                    0xc1b6e000 /* zip four consecutive vectors, 32 bit elements */
+#define LIBXSMM_AARCH64_INSTR_SME2_FADD_ZA_VGX4_S             0xc1a11c00 /* add four consecutive vectors to a vgx4 group of ZA array vectors */
+#define LIBXSMM_AARCH64_INSTR_SME_MOVA_H_SLICE_TO_VECTOR      0xc0820000 /* move one horizontal 32 bit tile slice to a vector */
+#define LIBXSMM_AARCH64_INSTR_SVE_EXT_V                       0x05200000 /* extract vector from pair (zdn, zm), destructive */
+#define LIBXSMM_AARCH64_INSTR_SVE2_EXT_V                      0x05600000 /* extract vector from pair (zn, zn+1), constructive */
+#define LIBXSMM_AARCH64_INSTR_SVE_SPLICE_S                    0x05ac8000 /* splice two vectors under predicate control, 32 bit, destructive */
 #define LIBXSMM_AARCH64_INSTR_SVE2_PTRUE_AS_COUNTER           0x25207810
 #define LIBXSMM_AARCH64_INSTR_SME_FMAX_2                      0xc1a0a100
 #define LIBXSMM_AARCH64_INSTR_SME_FMAX_4                      0xc1a0a900
@@ -1068,6 +1078,85 @@ void libxsmm_aarch64_instruction_sme_fmax( libxsmm_generated_code* io_generated_
                                            unsigned int             i_instr,
                                            unsigned int             i_vec_src_reg_0,
                                            unsigned int             i_vec_src_dst_reg );
+
+/**
+ * Generates a SME2 multi-vector zip (four consecutive registers) instruction
+ *
+ * @param io_generated_code pointer to the pointer of the generated code structure
+ * @param i_instr actual instruction (LIBXSMM_AARCH64_INSTR_SME2_ZIP_4_S)
+ * @param i_vec_reg_src first source register (multiple of 4)
+ * @param i_vec_reg_dst first destination register (multiple of 4)
+ */
+LIBXSMM_API_INTERN
+void libxsmm_aarch64_instruction_sme2_zip( libxsmm_generated_code* io_generated_code,
+                                           unsigned int            i_instr,
+                                           unsigned int            i_vec_reg_src,
+                                           unsigned int            i_vec_reg_dst );
+
+/**
+ * Generates a SME2 multi-vector instruction on a vgx4 group of ZA array vectors, e.g.
+ * fadd za.s[<Wv>, <offs>, vgx4], { <Zm>.s-<Zm+3>.s }
+ *
+ * @param io_generated_code pointer to the pointer of the generated code structure
+ * @param i_instr actual instruction (LIBXSMM_AARCH64_INSTR_SME2_FADD_ZA_VGX4_S)
+ * @param i_index_reg vector select register (w8-w11)
+ * @param i_offset vector select offset (0-7)
+ * @param i_vec_reg first source register (multiple of 4)
+ */
+LIBXSMM_API_INTERN
+void libxsmm_aarch64_instruction_sme2_za_vgx4( libxsmm_generated_code* io_generated_code,
+                                               unsigned int            i_instr,
+                                               unsigned int            i_index_reg,
+                                               unsigned int            i_offset,
+                                               unsigned int            i_vec_reg );
+
+/**
+ * Generates mova of one 32 bit horizontal tile slice to a vector: mova <Zd>.s, <Pg>/m, za<n>h.s[<Ws>, <offs>]
+ *
+ * @param io_generated_code pointer to the pointer of the generated code structure
+ * @param i_instr actual instruction (LIBXSMM_AARCH64_INSTR_SME_MOVA_H_SLICE_TO_VECTOR)
+ * @param i_tile tile 0-3
+ * @param i_index_reg slice select register (w12-w15)
+ * @param i_offset slice offset (0-3)
+ * @param i_pred_reg governing predicate (p0-p7)
+ * @param i_vec_reg destination register
+ */
+LIBXSMM_API_INTERN
+void libxsmm_aarch64_instruction_sme_mova_slice( libxsmm_generated_code* io_generated_code,
+                                                 unsigned int            i_instr,
+                                                 unsigned int            i_tile,
+                                                 unsigned int            i_index_reg,
+                                                 unsigned int            i_offset,
+                                                 unsigned int            i_pred_reg,
+                                                 unsigned int            i_vec_reg );
+
+/**
+ * Generates SVE ext (destructive: zd = zd:zm, constructive: zd = zn:zn+1, shifted down by i_imm bytes)
+ * and splice (zd = active segment of zd under i_pred_reg, then the low elements of zm)
+ *
+ * @param io_generated_code pointer to the pointer of the generated code structure
+ * @param i_instr LIBXSMM_AARCH64_INSTR_SVE_EXT_V, LIBXSMM_AARCH64_INSTR_SVE2_EXT_V or LIBXSMM_AARCH64_INSTR_SVE_SPLICE_S
+ * @param i_vec_reg_src second source (ext destructive, splice) or first source register (ext constructive)
+ * @param i_imm byte offset (ext, 0-255) or governing predicate (splice, p0-p7)
+ * @param i_vec_reg_dst destination register (first source for the destructive forms)
+ */
+LIBXSMM_API_INTERN
+void libxsmm_aarch64_instruction_sve_ext_splice( libxsmm_generated_code* io_generated_code,
+                                                 unsigned int            i_instr,
+                                                 unsigned int            i_vec_reg_src,
+                                                 unsigned int            i_imm,
+                                                 unsigned int            i_vec_reg_dst );
+
+/**
+ * Generates madd/msub: dst = src_2 +/- src_0 * src_1 (64 bit registers)
+ */
+LIBXSMM_API_INTERN
+void libxsmm_aarch64_instruction_alu_compute_madd( libxsmm_generated_code* io_generated_code,
+                                                   const unsigned int      i_alu_instr,
+                                                   const unsigned int      i_gp_reg_src_0,
+                                                   const unsigned int      i_gp_reg_src_1,
+                                                   const unsigned int      i_gp_reg_src_2,
+                                                   const unsigned int      i_gp_reg_dst );
 
 LIBXSMM_API_INTERN
 void libxsmm_aarch64_instruction_set_predication_as_counter( libxsmm_generated_code* io_generated_code,
