@@ -14,7 +14,7 @@
 
 #include "generator_common.h"
 
-IBXSMM_API_INTERN
+LIBXSMM_API_INTERN
 int libxsmm_generator_gemm_aarch64_kernel_sme_bg( libxsmm_generated_code*        io_generated_code,
                                                   const libxsmm_gemm_descriptor* i_xgemm_desc );
 
